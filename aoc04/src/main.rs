@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     fs::read_to_string,
+    ops::RangeInclusive,
 };
 
 use anyhow::{anyhow, bail, ensure, Result};
@@ -46,6 +47,8 @@ fn part2(input: &str) -> Result<usize> {
         .count())
 }
 
+const VALID_HEIGHT: RangeInclusive<i32> = 150..=193;
+
 fn is_valid_passport(passport: &HashMap<String, String>) -> Result<()> {
     let byr = passport
         .get("byr")
@@ -71,7 +74,7 @@ fn is_valid_passport(passport: &HashMap<String, String>) -> Result<()> {
     let hgt = passport.get("hgt").ok_or_else(|| anyhow!("No hgt"))?;
     if hgt.ends_with("cm") {
         let hgt = (&hgt[0..hgt.len() - 2]).parse::<i32>()?;
-        ensure!(hgt >= 150 && hgt <= 193, "Invalid hgt");
+        ensure!(VALID_HEIGHT.contains(&hgt), "Invalid hgt");
     } else if hgt.ends_with("in") {
         let hgt = (&hgt[0..hgt.len() - 2]).parse::<i32>()?;
         ensure!(hgt >= 59 && hgt <= 76, "Invalid hgt");
@@ -85,13 +88,7 @@ fn is_valid_passport(passport: &HashMap<String, String>) -> Result<()> {
 
     let ecl = passport.get("ecl").ok_or_else(|| anyhow!("No ecl"))?;
     ensure!(
-        ecl == "amb"
-            || ecl == "blu"
-            || ecl == "brn"
-            || ecl == "gry"
-            || ecl == "grn"
-            || ecl == "hzl"
-            || ecl == "oth",
+        ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"].contains(&ecl.as_str()),
         "Invalid eye color"
     );
 
