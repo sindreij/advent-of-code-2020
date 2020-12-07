@@ -4,9 +4,8 @@ use std::{
     ops::RangeInclusive,
 };
 
-use anyhow::{anyhow, bail, ensure, Result};
-use maplit::{hashmap, hashset};
-use regex::Regex;
+use anyhow::Result;
+use maplit::hashset;
 
 fn main() -> Result<()> {
     println!("part1: {}", part1(&read_input()?)?);
