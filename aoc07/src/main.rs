@@ -36,7 +36,6 @@ fn part1(input: &str) -> Result<usize> {
     let mut to_check = vec!["shiny gold"];
 
     while let Some(name) = to_check.pop() {
-        dbg!(name);
         has_checked.insert(name.to_owned());
         if let Some(direct_parents) = direct_parent.get(name) {
             for can_contain in direct_parents {
@@ -50,8 +49,21 @@ fn part1(input: &str) -> Result<usize> {
     Ok(has_checked.len() - 1)
 }
 
-fn part2(input: &str) -> Result<usize> {
-    Ok(12)
+fn part2(input: &str) -> Result<u32> {
+    let bags = parse(input)?;
+
+    Ok(get_number_of_bags_in_the_bag("shiny gold", &bags) - 1)
+}
+
+fn get_number_of_bags_in_the_bag(name: &str, bags: &HashMap<String, HashMap<String, u32>>) -> u32 {
+    let inner = bags.get(name).unwrap();
+
+    let answer = 1 + inner
+        .iter()
+        .map(|(inner_name, count)| count * get_number_of_bags_in_the_bag(inner_name, bags))
+        .sum::<u32>();
+
+    answer
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -238,6 +250,26 @@ faded blue bags contain no other bags.
             )
             .unwrap(),
             4
+        );
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(
+            part2(
+                "light red bags contain 1 bright white bag, 2 muted yellow bags.
+        dark orange bags contain 3 bright white bags, 4 muted yellow bags.
+        bright white bags contain 1 shiny gold bag.
+        muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
+        shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
+        dark olive bags contain 3 faded blue bags, 4 dotted black bags.
+        vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
+        faded blue bags contain no other bags.
+        dotted black bags contain no other bags.
+        "
+            )
+            .unwrap(),
+            32
         );
     }
 }
