@@ -18,68 +18,73 @@ fn read_input() -> Result<String> {
 }
 
 fn part1(input: &str) -> Result<i32> {
-    solve_part1(input, 25)
-}
-
-fn solve_part1(input: &str, preamble: usize) -> Result<i32> {
-    let mut last_numbers = VecDeque::new();
-
-    for number in input
+    let mut numbers = input
         .split("\n")
-        .filter(|a| !a.is_empty())
-        .filter_map(|a| a.parse::<i32>().ok())
-    {
-        if last_numbers.len() == preamble {
-            let mut correct = false;
-            'outer: for a in &last_numbers {
-                for b in &last_numbers {
-                    if a + b == number {
-                        correct = true;
-                        break 'outer;
-                    }
-                }
-            }
-            if !correct {
-                return Ok(number);
-            }
-        }
-        // check that it is correct
-        last_numbers.push_back(number);
-        if last_numbers.len() > preamble {
-            last_numbers.pop_front();
-        }
+        .filter_map(|n| n.parse().ok())
+        .collect::<Vec<i64>>();
+
+    numbers.sort();
+
+    let mut jolt = 0;
+
+    let mut counts = HashMap::new();
+
+    for number in numbers {
+        let diff = number - jolt;
+        *counts.entry(diff).or_insert(0) += 1;
+        jolt = number;
     }
 
-    Ok(12)
+    // The one between the last and the laptop
+    *counts.entry(3).or_insert(0) += 1;
+
+    dbg!(&counts);
+
+    Ok(counts.get(&1).unwrap_or(&0) * counts.get(&3).unwrap_or(&0))
 }
 
-fn part2(input: &str) -> Result<i32> {
-    solve_part2(input, 25)
-}
-
-fn solve_part2(input: &str, preamble: usize) -> Result<i32> {
-    let invalid_number = solve_part1(input, preamble)?;
-
-    let numbers = input
+fn part2(input: &str) -> Result<i64> {
+    let mut numbers = input
         .split("\n")
-        .filter(|a| !a.is_empty())
-        .filter_map(|a| a.parse::<i32>().ok())
-        .collect::<Vec<_>>();
+        .filter_map(|n| n.parse().ok())
+        .collect::<Vec<i64>>();
 
-    for start in 0..numbers.len() {
-        for end in start..numbers.len() {
-            let sum = numbers[start..end].iter().sum::<i32>();
-            if sum == invalid_number {
-                let max = numbers[start..end].iter().max().unwrap();
-                let min = numbers[start..end].iter().min().unwrap();
-                return Ok(max + min);
-            } else if sum > invalid_number {
-                break;
+    numbers.push(0);
+
+    numbers.sort();
+
+    // There are no duplicates
+
+    let mut parents = HashMap::new();
+    for (index, number) in numbers.iter().enumerate() {
+        for next in numbers.iter().skip(index + 1).take(3) {
+            if next - number <= 3 {
+                parents.entry(next).or_insert(vec![]).push(number);
             }
         }
     }
 
-    Ok(12)
+    let mut routes = HashMap::new();
+
+    for number in &numbers {
+        if *number == 0 {
+            routes.insert(number, 1);
+            continue;
+        }
+
+        let num_of_routes: i64 = parents
+            .get(&number)
+            .unwrap()
+            .iter()
+            .map(|parentid| routes.get(*parentid).unwrap_or(&0))
+            .sum();
+
+        routes.insert(number, num_of_routes);
+    }
+
+    dbg!(parents);
+
+    Ok(routes[numbers.last().unwrap()])
 }
 
 #[cfg(test)]
@@ -87,66 +92,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_solve_part1() {
+    fn test_part1() {
         assert_eq!(
-            solve_part1(
-                "35
-20
+            part1(
+                "16
+10
 15
-25
-47
-40
-62
-55
-65
-95
-102
-117
-150
-182
-127
-219
-299
-277
-309
-576
-",
-                5
+5
+1
+11
+7
+19
+6
+12
+4
+"
             )
             .unwrap(),
-            127
+            7 * 5
         )
     }
 
     #[test]
-    fn test_solve_part2() {
+    fn test_part2() {
         assert_eq!(
-            solve_part2(
-                "35
-20
+            part2(
+                "16
+10
 15
-25
-47
-40
-62
-55
-65
-95
-102
-117
-150
-182
-127
-219
-299
-277
-309
-576
-",
-                5
+5
+1
+11
+7
+19
+6
+12
+4
+"
             )
             .unwrap(),
-            62
+            8
         )
     }
 }
