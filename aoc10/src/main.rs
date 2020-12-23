@@ -52,37 +52,29 @@ fn part2(input: &str) -> Result<i64> {
     numbers.push(0);
 
     numbers.sort();
-
     // There are no duplicates
-
-    let mut parents = HashMap::new();
-    for (index, number) in numbers.iter().enumerate() {
-        for next in numbers.iter().skip(index + 1).take(3) {
-            if next - number <= 3 {
-                parents.entry(next).or_insert(vec![]).push(number);
-            }
-        }
-    }
 
     let mut routes = HashMap::new();
 
-    for number in &numbers {
+    for (index, number) in numbers.iter().enumerate() {
         if *number == 0 {
             routes.insert(number, 1);
             continue;
         }
 
-        let num_of_routes: i64 = parents
-            .get(&number)
-            .unwrap()
+        let mut number_of_routes = 0;
+        for possible_parent in numbers
             .iter()
-            .map(|parentid| routes.get(*parentid).unwrap_or(&0))
-            .sum();
+            .skip(0.max((index as i32) - 3) as usize)
+            .take(3)
+        {
+            if number - possible_parent <= 3 {
+                number_of_routes += routes.get(possible_parent).unwrap_or(&0);
+            }
+        }
 
-        routes.insert(number, num_of_routes);
+        routes.insert(number, number_of_routes);
     }
-
-    dbg!(parents);
 
     Ok(routes[numbers.last().unwrap()])
 }
