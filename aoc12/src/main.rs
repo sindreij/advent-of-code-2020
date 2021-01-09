@@ -70,7 +70,41 @@ fn part1(input: &str) -> Result<i64> {
 }
 
 fn part2(input: &str) -> Result<i64> {
-    Ok(12)
+    use Instruction::*;
+    let instructions = input
+        .split('\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            let command = &line[0..1];
+            let value: i64 = (&line[1..]).parse().unwrap();
+
+            match command {
+                "N" => North(value),
+                "S" => South(value),
+                "E" => East(value),
+                "W" => West(value),
+                "L" => TurnLeft(value),
+                "R" => TurnRight(value),
+                "F" => MoveForward(value),
+                _ => panic!("Could not parse {}", line),
+            }
+        });
+
+    let mut pos = Vector(0, 0);
+    let mut waypoint = Vector::NORTH * 1 + Vector::EAST * 10;
+    for inst in instructions {
+        match inst {
+            North(val) => waypoint += Vector::NORTH * val,
+            South(val) => waypoint += Vector::SOUTH * val,
+            East(val) => waypoint += Vector::EAST * val,
+            West(val) => waypoint += Vector::WEST * val,
+            TurnLeft(val) => waypoint = waypoint.rotate(-val),
+            TurnRight(val) => waypoint = waypoint.rotate(val),
+            MoveForward(val) => pos += waypoint * val,
+        }
+    }
+
+    Ok(pos.x().abs() + pos.y().abs())
 }
 
 #[cfg(test)]
@@ -89,6 +123,21 @@ F11"
             )
             .unwrap(),
             25
+        )
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(
+            part2(
+                "F10
+N3
+F7
+R90
+F11"
+            )
+            .unwrap(),
+            286
         )
     }
 }

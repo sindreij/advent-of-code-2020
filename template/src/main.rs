@@ -6,6 +6,8 @@ use std::{
 use anyhow::{anyhow, bail, Result};
 use maplit::{hashmap, hashset};
 
+use utils::Vector;
+
 fn main() -> Result<()> {
     println!("part1: {}", part1(&read_input()?)?);
     println!("part2: {}", part2(&read_input()?)?);
